@@ -6,6 +6,7 @@ Summary:        Virtio-fs vhost-user device daemon (Rust version)
 License:        Apache-2.0 AND BSD-3-Clause
 URL:            https://gitlab.com/virtio-fs/virtiofsd
 Source:         %{crates_source}
+Source1:	cargo-vendor.tar.xz
 
 ExclusiveArch:  %{rust_arches}
 
@@ -13,17 +14,19 @@ BuildRequires:  rust-packaging >= 21
 BuildRequires:  pkgconfig(libcap-ng)
 BuildRequires:  pkgconfig(libseccomp)
 Requires:       qemu-common
-Provides:       vhostuser-backend(fs)
 
 %description
 %{summary}.
 
 %prep
-%autosetup -n %{name}-%{version_no_tilde} -p1
+%autosetup -n %{name}-%{version_no_tilde} -p1 -a1
 %cargo_prep
 
-%generate_buildrequires
-%cargo_generate_buildrequires
+cat >>.cargo/config.toml <<'EOF'
+[source.vendored-sources]
+directory = "vendor"
+EOF
+sed -i -e 's,replace-with = "local-registry",replace-with = "vendored-sources",g' .cargo/config.toml
 
 %build
 %cargo_build
